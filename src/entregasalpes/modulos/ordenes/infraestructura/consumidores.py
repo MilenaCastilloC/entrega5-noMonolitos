@@ -65,8 +65,16 @@ def suscribirse_a_comandos():
         if cliente:
             cliente.close()
 
-    def_subscriptor_ejecutar_saga(app=None):
+    def_subscribirse_ejecutar_saga(app=None):
+        cliente = None
+        try:
+            cliente = pulsar.Client(f'pulsar://{utils.broker_host()}:6650')
+            consumidor = cliente.subscribe('ejecutar-saga', consumer_type=_pulsar.ConsumerType.Shared, subscription_name='entregasalpes-sub-comandos-orden', schema=AvroSchema(ComandoCrearOrden))
 
-    try:
-        while:
-    except:
+            while: True
+
+        except:
+            logging.error('ERROR: Suscribiendose al topico de ejecutar-saga')
+            traceback.print_exc()
+            if cliente:
+                cliente.close()
