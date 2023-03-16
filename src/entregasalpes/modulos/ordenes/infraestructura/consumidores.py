@@ -65,6 +65,15 @@ def suscribirse_a_comandos():
         if cliente:
             cliente.close()
 
+
+def oir_mensaje(mensaje):
+    if isinstance(mensaje, EventoDominio):
+        coordinador = CoordinadorOrdenes()
+        coordinador.inicializar_pasos()
+        coordinador.procesar_evento(mensaje)
+    else:
+        raise NotImplementedError("El mensaje no es un evento de dominio")
+
     def_subscribirse_ejecutar_saga(app=None):
         cliente = None
         try:
@@ -73,8 +82,17 @@ def suscribirse_a_comandos():
 
             while: True
 
+            mensaje = consumidor.receive()
+            print(f'Evento recibido: {mensaje.value().data}')
+
+            order = OrdenCreada(id="abc01abc02", id_orden=01,estado="1")
+            oir_mensaje(order)
+            print(f'Mensaje oído: {mensaje.value().data}')
+            consumidor.acknowledge(mensaje)
+            cliente.close()
+
         except:
-            logging.error('ERROR: Suscribiendose al topico de ejecutar-saga')
+            logging.error('ERROR: Suscribiendose al tópico ejecutar-saga')
             traceback.print_exc()
             if cliente:
                 cliente.close()
