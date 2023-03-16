@@ -1,4 +1,5 @@
 import os
+import logging
 
 from flask import Flask, render_template, request, url_for, redirect, jsonify, session
 from flask_swagger import swagger
@@ -10,21 +11,30 @@ def registrar_handlers():
     import entregasalpes.modulos.ordenes.aplicacion
 
 def importar_modelos_alchemy():
+    import entregasalpes.modulos.ordenes.infraestructura.dto
 
+
+
+def comenzar_consumidor(app):
+    import threading
+    import entregasalpes.modulos.ordenes.infraestructura.consumidores as ordenes
+    threading.Thread(target=ordenes.suscribirse_a_ejecutar_saga,args=[app]).start()
 
 def create_app(configuracion={}):
     # Init la aplicacion de Flask
     app = Flask(__name__, instance_relative_config=True)
+
+    logging.basicConfig(level=logging.DEBUG)
+    app.config['SQLALCHEMY_DATABASE_URI'] =\
+            'sqlite:///' + os.path.join(basedir, 'database.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     app.secret_key = '9d58f98f-3ae8-4149-a09f-3a8c2012e32c'
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['TESTING'] = configuracion.get('TESTING')
 
      # Inicializa la DB
-    from entregasalpes.config.db import init_db, database_connection
-
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_connection(configuracion, basedir=basedir)
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    from entregasalpes.config.db import init_db
 
     init_db(app)
 
@@ -40,6 +50,8 @@ def create_app(configuracion={}):
 
      # Importa Blueprints
     from . import ordenes
+    from entregasalpes.modulos.sagas.aplicacion.coordinadores.saga_orden import CoordinadorOrdenes
+    CoordinadorOrdenes()
 
 
     # Registro de Blueprints

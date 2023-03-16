@@ -5,9 +5,16 @@ import time
 import logging
 import traceback
 
-from entregasalpes.modulos.ordenes.infraestructura.schema.v1.eventos import EventoOrdenCreada
+from entregasalpes.modulos.ordenes.infraestructura.schema.v1.eventos import EventoOrdenCreada, EventoEjecutaSaga
 from entregasalpes.modulos.ordenes.infraestructura.schema.v1.comandos import ComandoCrearOrden
 from entregasalpes.seedwork.infraestructura import utils
+from entregasalpes.seedwork.dominio.eventos import EventoDominio
+from entregasalpes.modulos.ordenes.aplicacion.comandos.crear_orden import CrearOrden
+from entregasalpes.seedwork.aplicacion.comandos import ejecutar_commando
+
+from entregasalpes.modulos.ordenes.dominio.eventos import OrdenCreada
+from entregasalpes.seedwork.infraestructura.schema.v1.mensajes import Mensaje
+from entregasalpes.modulos.sagas.aplicacion.coordinadores.saga_orden import CoordinadorOrdenes
 
 def suscribirse_a_eventos():
     cliente = None
@@ -35,9 +42,21 @@ def suscribirse_a_comandos():
 
         while True:
             mensaje = consumidor.receive()
+            valor = mensaje.value()
             print(f'Comando recibido: {mensaje.value().data}')
+            fecha_creacion = utils.millis_a_datetime(valor.data.fecha_creacion)
+            fecha_actualizacion = utils.millis_a_datetime(valor.data.fecha_actualizacion)
 
-            consumidor.acknowledge(mensaje)     
+            id = str(uuid.uuid4())
+            try:
+                with app.test_request_context():
+                    comando = CrearOrden(fecha_creacion, fecha_actualizacion, id)
+                    ejecutar_commando(comando)
+            except:
+                logging.error('ERROR: Procesando eventos!')
+                traceback.print_exc()
+
+            consumidor.acknowledge(mensaje)
             
         cliente.close()
     except:
@@ -45,3 +64,9 @@ def suscribirse_a_comandos():
         traceback.print_exc()
         if cliente:
             cliente.close()
+
+    def_subscriptor_ejecutar_saga(app=None):
+
+    try:
+        while:
+    except:

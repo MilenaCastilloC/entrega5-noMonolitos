@@ -16,4 +16,7 @@ class EventoOrdenCreada(EventoIntegracion):
     
     data = OrdenCreadaPayload()
 
-     
+class EventoEjecutaSaga(EventoDominio):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

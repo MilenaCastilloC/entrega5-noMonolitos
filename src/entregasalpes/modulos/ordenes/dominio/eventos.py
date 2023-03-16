@@ -12,4 +12,8 @@ class OrdenCreada(EventoOrden):
     estado: str = None
     fecha_creacion: datetime = None
  
- 
+ @dataclass
+ class OrdenCancelada(EventoOrden):
+     id_orden: uuid.UUID = None
+     fecha_actualizacion: datetime = None
+     estado: str = None
